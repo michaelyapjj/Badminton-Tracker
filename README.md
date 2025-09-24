@@ -1,1 +1,1 @@
-# Badminton-Tracker
+# Badminton shuttle speedometer

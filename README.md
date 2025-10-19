@@ -2,7 +2,29 @@
 
 Installing python on host and your VM:
 Download python 3.14: https://www.python.org/downloads/ 
-On VM: 
+
+We download on both because the Recommended Workflow is as follows:
+1. Windows Host – Development & Training
+- Train YOLOv5n on your shuttlecock dataset (fast GPU if available).
+- Test detection on local videos until it’s stable.
+- Export the trained model to ONNX or TFLite (best.onnx or best.tflite).
+
+2. Linux VM – Deployment Simulation
+- Re-create the Beagle’s environment:
+```
+sudo apt install python3-venv python3-pip opencv-python
+pip install torch torchvision ultralytics
+```
+- Verify that your model loads and runs inference here using CPU.
+- Fix any library/version issues before touching the Beagle board.
+
+3. BeagleY-AI Target – Real-Time Execution
+- Copy the validated model + script to the board (scp or USB).
+- Install only lightweight runtime libs (OpenCV, TIDL/TensorRT, etc.).
+- Connect the iPhone camera stream and run your live detection/speed tracker.
+- Profile FPS and latency; adjust quantization if it’s too slow.
+  
+On VM after installing the pythone package: 
 ```
 sudo apt update
 sudo apt install -y build-essential libssl-dev zlib1g-dev \

@@ -1,0 +1,22 @@
+#Connect logitech camera to USB-3 of BeagleY-AI
+
+#Commands:
+#Listing USB:
+lsusb
+ls -l /dev/video*
+
+#Installing video tools:
+sudo apt update
+sudo apt install -y v4l-utils ffmpeg fswebcam \ gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-libav
+
+#On BeagleY-AI, replace any existing image or create a new one, take a screenshot with camera, and view it:
+rm -f ~/snapshot.jpg
+QT_QPA_PLATFORM=offscreen ./cam_preview /dev/video0
+command -v chafa >/dev/null 2>&1 || {sudo apt update && sudo apt install -y chafa;}
+ls -lh ~/snapshot.jpg
+chafa ~/snapshot.jpg
+
+#With setup yolov5 environment:
+latest=$(ls -dt runs/detect/exp*/ | head -n1)
+#change file name if needed
+xdg-open "${latest}snapshot.jpg"

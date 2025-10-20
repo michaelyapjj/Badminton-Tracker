@@ -64,4 +64,10 @@ pip freeze > requirements_locked.txt
 
 #To deactivate environment
 deactivate
+
+#Troubleshoot
+# If during installation it says out of space
+sudo mount -o remount,size=6G /tmp
+# and re-run 
+pip install -r requirements.txt --prefer-binary
 ```

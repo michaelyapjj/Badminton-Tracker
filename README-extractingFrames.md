@@ -3,7 +3,7 @@ We are doing this to label each frame to train YOLO.
 
 Have ffmpeg downloaded
 
-Create a folder called frames. This code extracts the frmes from your video to the frames file.
+Create a folder called frames. This code extracts the frames from your video to the frames file.
 -q:v 1 → high image quality
 -r 10 → 10 frames per second
 ```

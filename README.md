@@ -1,4 +1,4 @@
-# Badminton shuttle speedometer
+# Downloading Python and setting up YOLOv5n environment
 
 Installing python on host and your VM:
 Download python 3.14: https://www.python.org/downloads/ 

@@ -41,7 +41,7 @@ sudo make install
 python3 --version 
 python3 -m ensurepip --upgrade
 ```
-Set up environment:
+Set up environment on Linux:
 ```
 # Inside your home directory or project folder
 python3 -m venv yolov5env
@@ -70,4 +70,20 @@ deactivate
 sudo mount -o remount,size=6G /tmp
 # and re-run 
 pip install -r requirements.txt --prefer-binary
+```
+Set up environment on Windows:
+```
+cd %USERPROFILE%
+python -m venv yolov5env
+yolov5env\Scripts\activate
+
+python -m pip install --upgrade pip wheel setuptools
+git clone https://github.com/ultralytics/yolov5.git
+cd yolov5
+pip install -r requirements.txt
+
+python detect.py --source data/images/bus.jpg --weights yolov5n.pt
+pip freeze > requirements_locked.txt
+
+deactivate
 ```

@@ -62,9 +62,6 @@ Transforms pixel coordinates → metric space.
 Net-Based Height Estimation
 Interpolates the top & bottom of the net at each x-pixel to estimate shuttle height using a vertical fraction.
 
-<img width="1668" height="2157" alt="image" src="https://github.com/user-attachments/assets/d2e4d1b7-9790-4dd2-b843-22eb8c1c67bb" />
-
-
 ### 3D Speed
 Computed as:
 ```

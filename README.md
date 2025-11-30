@@ -1,3 +1,4 @@
+# H1 Heading (Largest)
 Badminton 3D Shuttle Speed & Smash Detection (Roboflow + OpenCV)
 
 This project is a real-time badminton shuttle tracker that estimates 3D speed, height, and detects smashes using a single iPhone video feed.

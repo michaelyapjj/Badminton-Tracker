@@ -84,7 +84,7 @@ EMA_ALPHA = 0.35
 MAX_JUMP = 3.5
 MAX_SPEED_MPS = 150
 
-# Smash detection
+# Smash detection thresholds
 smash_active = False
 smash_peak_internal = 0.0
 last_smash_time = 0
@@ -94,8 +94,7 @@ SMASH_MIN_SPEED  = 10.0
 SMASH_MIN_DZDT   = -1.2
 SMASH_COOLDOWN   = 1.2
 
-# display settings
-DISPLAY_SMASH_GAIN = 11.0
+DISPLAY_SMASH_GAIN = 12.0
 DISPLAY_DURATION = 2.0
 
 overlay_text = ""
@@ -133,7 +132,7 @@ def parse_dets(result):
 
 
 # ----------------------------------------------------------
-# 5. MAIN PROCESSING + SMASH + NET-HIT DETECTION
+# 5. MAIN PROCESSING + SMASH + NET HIT DETECTION
 # ----------------------------------------------------------
 
 def my_sink(result, video_frame):
@@ -147,29 +146,33 @@ def my_sink(result, video_frame):
     frame = result["output_image"].numpy_image
     dets = parse_dets(result)
 
-    # keep overlay if active
     if len(dets) == 0:
+        # show overlay if still active
         if time.time() < overlay_until:
-            cv2.putText(frame, overlay_text,
-                        (40, 120), cv2.FONT_HERSHEY_SIMPLEX,
-                        2.0, (0, 0, 255), 5)
+            cv2.putText(
+                frame,
+                overlay_text,
+                (40, 160),  # moved down so it doesn’t overlap speed/height
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.8,        # slightly smaller font
+                (0, 0, 255),
+                4
+            )
         cv2.imshow("Tracker", frame)
         cv2.waitKey(1)
         return
 
-    # best detection
     det = max(dets, key=lambda d: d["conf"])
-    x1,y1,x2,y2 = det["x1"],det["y1"],det["x2"],det["y2"]
-    cx, cy = (x1+x2)/2, (y1+y2)/2
+    x1, y1, x2, y2 = det["x1"], det["y1"], det["x2"], det["y2"]
+    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
 
-    cv2.circle(frame, (int(cx),int(cy)), 8, (0,0,255), -1)
+    cv2.circle(frame, (int(cx), int(cy)), 8, (0, 0, 255), -1)
 
-    # project to 3D
     x_m, y_m = project_to_court(cx, cy)
     z_m = estimate_height(cx, cy)
 
     t = time.time()
-    dzdt = 0
+    dzdt = 0.0
 
     # SPEED CALCULATION
     if last_xyz is not None and last_t is not None:
@@ -187,20 +190,19 @@ def my_sink(result, video_frame):
                     speed_kmh = speed_mps * 3.6
                     smooth_speed = (
                         EMA_ALPHA * speed_kmh +
-                        (1-EMA_ALPHA) * smooth_speed
+                        (1 - EMA_ALPHA) * smooth_speed
                     )
 
     # ------------------------------
-    #   SMASH & NET HIT DETECTION
+    #   SMASH + NET HIT DETECTION
     # ------------------------------
-
     height_ok = z_m > SMASH_MIN_HEIGHT
     speed_ok  = smooth_speed > SMASH_MIN_SPEED
     down_ok   = dzdt < SMASH_MIN_DZDT
 
     is_smash_now = height_ok and speed_ok and down_ok
 
-    # new net-hit conditions (pixel-based only)
+    # Pixel-net detection
     PIXEL_NET_TOL = 35
     NET_HIT_HEIGHT = 1.8
     NET_HIT_DZDT = -0.8
@@ -209,20 +211,19 @@ def my_sink(result, video_frame):
 
     smash_hit_net = False
     if smash_active:
-        pixel_close = abs(cy - net_bottom_px) < PIXEL_NET_TOL
-        height_low = z_m < NET_HIT_HEIGHT
-        falling = dzdt < NET_HIT_DZDT
-        if pixel_close and height_low and falling:
+        if (
+            abs(cy - net_bottom_px) < PIXEL_NET_TOL and
+            z_m < NET_HIT_HEIGHT and
+            dzdt < NET_HIT_DZDT
+        ):
             smash_hit_net = True
 
-    # PHASE LOGIC
     if is_smash_now:
         if not smash_active:
             smash_active = True
             smash_peak_internal = smooth_speed
         else:
             smash_peak_internal = max(smash_peak_internal, smooth_speed)
-
     else:
         if smash_active:
             if smash_hit_net:
@@ -235,24 +236,46 @@ def my_sink(result, video_frame):
             print("\n🔥", overlay_text, "\n")
 
         smash_active = False
-        smash_peak_internal = 0
+        smash_peak_internal = 0.0
 
-    # Update state
+    # update state
     last_xyz = (x_m, y_m, z_m)
     last_t = t
 
-    # always show real time speed (top right)
-    cv2.putText(frame,
-        f"{smooth_speed:.1f} km/h",
-        (frame.shape[1]-220, 60),
+    # --------------------------------------------
+    # Speed + height at top-left (non-overlapping)
+    # --------------------------------------------
+    cv2.putText(
+        frame,
+        f"Speed: {smooth_speed:.1f} km/h",
+        (40, 40),
         cv2.FONT_HERSHEY_SIMPLEX,
-        1.4, (0,255,0), 3)
+        1.0,
+        (255, 255, 255),
+        2
+    )
 
-    # smash overlay
+    cv2.putText(
+        frame,
+        f"Height: {z_m:.2f} m",
+        (40, 80),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1.0,
+        (255, 255, 255),
+        2
+    )
+
+    # smash overlay moved further down
     if time.time() < overlay_until:
-        cv2.putText(frame, overlay_text,
-                    (40, 120), cv2.FONT_HERSHEY_SIMPLEX,
-                    2.0, (0,0,255), 5)
+        cv2.putText(
+            frame,
+            overlay_text,
+            (40, 160),  # lower than height text
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.8,
+            (0, 0, 255),
+            4
+        )
 
     cv2.imshow("Tracker", frame)
     cv2.waitKey(1)
@@ -266,7 +289,7 @@ pipeline = InferencePipeline.init_with_workflow(
     api_key="3wixWNG4N7Nm9zndSzfF",
     workspace_name="shuttlecock-tracker",
     workflow_id="detect-count-and-visualize",
-    video_reference="data/IMG_2139.MOV",
+    video_reference="data/moreSmashes.MOV",
     max_fps=30,
     on_prediction=my_sink
 )

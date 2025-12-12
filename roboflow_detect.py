@@ -357,7 +357,7 @@ def my_sink(result, video_frame):
 set_default_volume()
 
 pipeline = InferencePipeline.init_with_workflow(
-    api_key="3wixWNG4N7Nm9zndSzfF",
+    api_key="",
     workspace_name="shuttlecock-tracker",
     workflow_id="detect-count-and-visualize",
     video_reference=video_path,

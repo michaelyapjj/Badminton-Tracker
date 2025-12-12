@@ -286,7 +286,7 @@ def my_sink(result, video_frame):
 # ----------------------------------------------------------
 
 pipeline = InferencePipeline.init_with_workflow(
-    api_key="3wixWNG4N7Nm9zndSzfF",
+    api_key="",
     workspace_name="shuttlecock-tracker",
     workflow_id="detect-count-and-visualize",
     video_reference="data/moreSmashes.MOV",
@@ -296,3 +296,4 @@ pipeline = InferencePipeline.init_with_workflow(
 
 pipeline.start()
 pipeline.join()
+
